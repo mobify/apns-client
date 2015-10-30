@@ -1,3 +1,8 @@
+Forked from https://bitbucket.org/sardarnl/apns-client by benlast@mobify.com
+The maintainer of apns-client has stopped handling PRs, and an incompatibility
+now exists between apns-client 0.2.1 and APNS (Apple deprecated SSLv3 ).
+Forked to allow us to fix this.
+
 apns-client.
 ====================================
 Python client for `Apple Push Notification service (APNs) <https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/ApplePushService.html>`_.
