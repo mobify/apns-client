@@ -1,3 +1,7 @@
+2015-10-30 Ben Last <benlast@mobify.com>
+    * version 0.2.1a
+    * Applied Dave Bogarty's fix from https://bitbucket.org/dtbog/apns-client/commits/875f12af6dd23e8c2c58be0849706b682d57ec41?at=default
+
 2014-06-17  Sardar Yumatov <ja.doma@gmail.com>
     * version 0.2.1
     * apnsclient/backends/stdio.py: fixed debug message format.
