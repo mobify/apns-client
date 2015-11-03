@@ -47,7 +47,7 @@ class Session(object):
     DEFAULT_READ_TIMEOUT = 20
     # Default timeout waiting for error response at the end message send operation.
     DEFAULT_READ_TAIL_TIMEOUT = 3
-    
+
     def __init__(self, pool="apnsclient.backends.stdio",
                        connect_timeout=DEFAULT_CONNECT_TIMEOUT,
                        write_buffer_size=DEFAULT_WRITE_BUFFER_SIZE,
@@ -119,7 +119,7 @@ class Session(object):
     def new_connection(self, address="feedback_sandbox", certificate=None, **cert_params):
         """ Obtain new connection to APNs. This method will not re-use existing
             connection from the pool. The connection will be closed after use.
-            
+
             Unlike :func:`get_connection` this method does not cache the
             connection.  Use it to fetch feedback from APNs and then close when
             you are done.
@@ -204,7 +204,7 @@ class Connection(object):
 
     def __init__(self, address, certificate, session, use_cache=False):
         """ New connection wrapper.
-            
+
             :Arguments:
                 - address (tuple) - (host, port) to connect to.
                 - certificate (:class:`BaseCertificate`) - provider certificate.
@@ -275,9 +275,11 @@ class Connection(object):
                     # other writes, that fail naturally
                     try:
                         ret = self._connection.write(chunk, self.session.write_timeout)
-                    except:
+
+                    except Exception as ex:
                         # IO failure on subsequent writes, some of the tokens are
                         # sent, break on the beginning of this batch
+                        LOG.warning('Exception %s in write', ex)
                         failed_after = sent
                         break
 
@@ -286,13 +288,16 @@ class Connection(object):
                     # should either return sequence of bytes or None if read buffer
                     # is empty.
                     ret = self._connection.peek(256) # status frame is 6 bytes
-                except:
+
+                except Exception as ex:
                     # Peek failed, which means our read operations fail
                     # abnormaly. I don't like that and the final read will
                     # probably fail too. So fail early, possibly messing the
                     # first batch, but not everything
+                    LOG.warning('Exception %s in peek', ex)
                     failed_after = sent
                     break
+
                 else:
                     if ret is not None:
                         decoder.feed(ret)
@@ -331,7 +336,8 @@ class Connection(object):
                 while True:
                     try:
                         ret = self._connection.read(256, self.session.read_tail_timeout)
-                    except:
+
+                    except Exception as ex:
                         # one of two things had happened:
                         #  - everything went fine, we waited for the final status
                         #    frame the tail timeout of time and got nothing (timeout).
@@ -352,7 +358,10 @@ class Connection(object):
                         # IO write failed. If failed_after is not None, then
                         # we got here probably because connection is closed for
                         # read and write after the write failure.
+                        if (not isinstance(ex, IOError)) or ('timeout' not in ex.message.lower()):
+                            LOG.warning('Exception %s in tail read', ex)
                         break
+
                     else:
                         if ret is not None:
                             decoder.feed(ret)
