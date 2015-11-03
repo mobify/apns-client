@@ -330,9 +330,9 @@ class Connection(BaseConnection):
         self._socket.settimeout(timeout)  # None will set blocking mode
         waited = 0
         while True:
+            before = time.time()
             try:
                 if timeout is not None:
-                    before = time.time()
                     ret = self._connection.recv(size)
                     waited += time.time() - before
                 else: # save the time syscalls
@@ -343,9 +343,11 @@ class Connection(BaseConnection):
                     ret = None
 
                 return ret
+
             except OpenSSL.SSL.ZeroReturnError:
                 # nice end of stream
                 return None
+
             except OpenSSL.SSL.WantReadError:
                 # either pyOpenSSL is failing without even trying to block
                 # or we really exceeded the timeout
