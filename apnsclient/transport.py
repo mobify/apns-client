@@ -319,9 +319,21 @@ class Connection(object):
                                 LOG.info("Message send failed midway with status %r to address %r. Sent tokens: %s, bytes: %s",
                                          status, self.address, sent, total_sent)
 
-                            # some shit had happened, response from APNs, bail out and prepare for retry
-                            self._close(terminate=True)
+                            # Ben added this: don't terminate the
+                            # connection for simple/common errors - leave it
+                            # open so that it can be reused. Opening an SSL
+                            # connection can be slow.
+                            # 5 is invalid token size
+                            # 8 is invalid token value
+                            if status[0] in (5, 8):
+                                LOG.debug('Leaving connection open...')
+                                self._close(terminate=False)
+                            else:
+                                LOG.debug('Closing connection...')
+                                self._close(terminate=True)
+
                             return status
+
                     # else: nothing in the read buffer, keep sending
 
             # by this time we either stopped prematurely on IO error with
